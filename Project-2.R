@@ -23,39 +23,15 @@ Bostonschools<- read_csv(response$content)
 bostonschoolsmap<-readOGR("Public_Schools.geojson")
 schooldistrict<-readOGR("Boston_Neighborhoods.shp")
 
-citylist<-unique(bostonschoolsmap$CITY)
-
-schoollist<-unique(bostonschoolsmap$SCH_TYPE)
-
-zipcodelist<-unique(bostonschoolsmap$ZIPCODE)
-populationlist<-unique(bostonschoolsmap$PL)
 # Define UI for application
 ui <- navbarPage("Public Schools in Boston",
                  theme = shinytheme("darkly"),
                  tabPanel("Map",
                           sidebarLayout(
                             sidebarPanel(
-                              selectInput("cityselect",
-                                          "City",
-                                          levels(citylist),
-                                          selected = c(""),
-                                          selectize = T,
-                                          multiple = T),
-                              selectInput("schooltypeselect",
-                                          "School Type",
-                                          levels(schoollist),
-                                          selected = c(""),
-                                          selectize = T,
-                                          multiple = T),
-                              selectInput("zipcodeselect",
-                                          "Zip Code",
-                                          levels(zipcodelist),
-                                          selected = c("ES"),
-                                          selectize = T,
-                                          multiple = T),
-                              selectInput("populationselect",
-                                          "Population",
-                                          levels(populationlist),
+                              selectInput("principleselect",
+                                          "Principle",
+                                          choices = sort(unique(bostonschoolsmap$PL)),
                                           selected = c(""),
                                           selectize = T,
                                           multiple = T)
@@ -68,10 +44,31 @@ ui <- navbarPage("Public Schools in Boston",
                  ),
                  
                  tabPanel("Schools Plots",
+                          sidebarLayout(
+                            sidebarPanel(
+                              selectInput("cityselect",
+                                          "City",
+                                          choices = sort(unique(Bostonschools$CITY)),
+                                          selected = c(""),
+                                          selectize = T,
+                                          multiple = T),
+                              selectInput("schooltypeselect",
+                                          "School Type",
+                                          choices = sort(unique(Bostonschools$SCH_TYPE)),
+                                          selectize = T,
+                                          multiple = T),
+                              selectInput("zipcodeselect",
+                                          "Zip Code",
+                                          choices = sort(unique(Bostonschools$ZIPCODE)),
+                                          selected = c("ES"),
+                                          selectize = T,
+                                          multiple = T)
+                            ),
                           fluidRow(
                             column(5, plotlyOutput("Plot1")),
                             column(7, plotlyOutput("Plot2"))
                           )
+                      )    
                  ),
                  tabPanel("Table",
                           fluidPage(
@@ -84,33 +81,15 @@ ui <- navbarPage("Public Schools in Boston",
 server <- function(input, output) {
 
   bostonmapsInputs <- reactive({
-    bostonschoolsmap <- bostonschoolsmap %>%
-      
     if (length(input$populationselect) > 0) {
-      bostonschoolsmap <- subset(bostonschoolsmap, PL %in% input$populationselect)
+      bostonschoolsmap <- subset(bostonschoolsmap, PL %in% input$principleselect)
     }
-    
-    if (length(input$cityselect) > 0) {
-      bostonschoolsmap <- subset(bostonschoolsmap, CITY %in% input$citySelect)
-    }
-    if (length(input$schooltypeselect) > 0) {
-      bostonschoolsmap <- subset(bostonschoolsmap, SCH_TYPE %in% input$schooltypeselect)
-    }
-    if (length(input$zipcodeselect) > 0) {
-      bostonschoolsmap <- subset(bostonschoolsmap, ZIPCODE %in% input$zipcodeselect)
-     }
-    
     return(bostonschoolsmap)
   })
   
   bostonInputs <- reactive({
-    Bostonschools <- Bostonschools%>%
-    if (length(input$populationselect) > 0) {
-      Bostonschools <- subset(Bostonschools, PL %in% input$populationselect)
-    }
-    
     if (length(input$cityselect) > 0) {
-      Bostonschools <- subset(Bostonschools, CITY %in% input$citySelect)
+        Bostonschools <- subset(Bostonschools, CITY %in% input$cityselect)
     }
     if (length(input$schooltypeselect) > 0) {
       Bostonschools <- subset(Bostonschools, SCH_TYPE %in% input$schooltypeselect)
@@ -122,13 +101,13 @@ server <- function(input, output) {
     return(Bostonschools)
   })
   
+  
   output$leaflet <- renderLeaflet({
-    bostonmaps <- bostonmapsInputs()
+    bostonschoolsmap <- bostonmapsInputs()
     # Build Map
     leaflet()%>%
       addProviderTiles("OpenStreetMap.Mapnik")%>%
       addPolygons(data=schooldistrict,
-                  weight=2,
                   color="red")%>%
       addMarkers(data=bostonschoolsmap, popup = ~paste0(SCH_NAME))
       
@@ -151,7 +130,7 @@ server <- function(input, output) {
            x= "Number of schools", y= "City")
   })
   
-  output$Table <- DT::renderDataTable({
+  output$table <- DT::renderDataTable({
     subset(bostonInputs(), select = c("SCH_TYPE","SCH_NAME","ZIPCODE","ADDRESS","CITY"))
   })
 }
