@@ -23,8 +23,12 @@ Bostonschools<- read_csv(response$content)
 bostonschoolsmap<-readOGR("Public_Schools.geojson")
 schooldistrict<-readOGR("Boston_Neighborhoods.shp")
 
+citylist<-unique(bostonschoolsmap$CITY)
 
+schoollist<-unique(bostonschoolsmap$SCH_TYPE)
 
+zipcodelist<-unique(bostonschoolsmap$ZIPCODE)
+populationlist<-unique(bostonschoolsmap$PL)
 # Define UI for application
 ui <- navbarPage("Public Schools in Boston",
                  theme = shinytheme("darkly"),
@@ -33,25 +37,25 @@ ui <- navbarPage("Public Schools in Boston",
                             sidebarPanel(
                               selectInput("cityselect",
                                           "City",
-                                          levels(bostonschoolsmap$CITY),
+                                          levels(citylist),
                                           selected = c(""),
                                           selectize = T,
                                           multiple = T),
                               selectInput("schooltypeselect",
                                           "School Type",
-                                          levels(bostonschoolsmap$SCH_TYPE),
+                                          levels(schoollist),
                                           selected = c(""),
                                           selectize = T,
                                           multiple = T),
                               selectInput("zipcodeselect",
                                           "Zip Code",
-                                          levels(bostonschoolsmap$ZIPCODE),
+                                          levels(zipcodelist),
                                           selected = c("ES"),
                                           selectize = T,
                                           multiple = T),
                               selectInput("populationselect",
                                           "Population",
-                                          levels(bostonschoolsmap$PL),
+                                          levels(populationlist),
                                           selected = c(""),
                                           selectize = T,
                                           multiple = T)
@@ -80,6 +84,8 @@ ui <- navbarPage("Public Schools in Boston",
 server <- function(input, output) {
 
   bostonmapsInputs <- reactive({
+    bostonschoolsmap <- bostonschoolsmap %>%
+      
     if (length(input$populationselect) > 0) {
       bostonschoolsmap <- subset(bostonschoolsmap, PL %in% input$populationselect)
     }
@@ -98,6 +104,7 @@ server <- function(input, output) {
   })
   
   bostonInputs <- reactive({
+    Bostonschools <- Bostonschools%>%
     if (length(input$populationselect) > 0) {
       Bostonschools <- subset(Bostonschools, PL %in% input$populationselect)
     }
