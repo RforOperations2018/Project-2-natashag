@@ -98,7 +98,7 @@ server <- function(input, output) {
     }
     if (length(input$zipcodeselect) > 0) {
       bostonschoolsmap <- subset(bostonschoolsmap, ZIPCODE %in% input$zipcodeselect)
-    }
+     }
     
     return(bostonschoolsmap)
   })
