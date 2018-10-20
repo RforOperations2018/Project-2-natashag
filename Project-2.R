@@ -29,10 +29,10 @@ ui <- navbarPage("Public Schools in Boston",
                  tabPanel("Map",
                           sidebarLayout(
                             sidebarPanel(
-                              selectInput("principleselect",
-                                          "Principle",
-                                          choices = sort(unique(bostonschoolsmap$PL)),
-                                          selected = c(""),
+                              selectInput("nameselect",
+                                          "Name of School",
+                                          choices = sort(unique(bostonschoolsmap$SCH_NAME)),
+                                          selected = c("Adams Elementary"),
                                           selectize = T,
                                           multiple = T)
                             ),
@@ -42,7 +42,7 @@ ui <- navbarPage("Public Schools in Boston",
                               )
                           )
                  ),
-                 
+                 #Plots panel
                  tabPanel("Schools Plots",
                           sidebarLayout(
                             sidebarPanel(
@@ -70,8 +70,12 @@ ui <- navbarPage("Public Schools in Boston",
                           )
                       )    
                  ),
+                 #Data table panel
                  tabPanel("Table",
                           fluidPage(
+                            inputPanel(
+                              downloadButton("downloaddata","Download Data")
+                            ),
                             wellPanel(DT::dataTableOutput("table"))
                           )
                  )
@@ -79,10 +83,11 @@ ui <- navbarPage("Public Schools in Boston",
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  
 
   bostonmapsInputs <- reactive({
-    if (length(input$populationselect) > 0) {
-      bostonschoolsmap <- subset(bostonschoolsmap, PL %in% input$principleselect)
+    if (length(input$nameselect) > 0) {
+      bostonschoolsmap <- subset(bostonschoolsmap, SCH_NAME %in% input$nameselect)
     }
     return(bostonschoolsmap)
   })
@@ -101,7 +106,6 @@ server <- function(input, output) {
     return(Bostonschools)
   })
   
-  
   output$leaflet <- renderLeaflet({
     bostonschoolsmap <- bostonmapsInputs()
     # Build Map
@@ -110,9 +114,9 @@ server <- function(input, output) {
       addPolygons(data=schooldistrict,
                   color="red")%>%
       addMarkers(data=bostonschoolsmap, popup = ~paste0(SCH_NAME))
-      
-  })
-  #I am goin to create the plots
+  }) 
+
+  #I am going to create the plots
   #The first pplot is going to show the number of schools per type of school
   output$Plot1 <- renderPlotly({
     Bostonschools<- bostonInputs()
@@ -133,6 +137,14 @@ server <- function(input, output) {
   output$table <- DT::renderDataTable({
     subset(bostonInputs(), select = c("SCH_TYPE","SCH_NAME","ZIPCODE","ADDRESS","CITY"))
   })
+  output$downloaddata<-downloadHandler(
+    filename = function(){
+      paste("Bostonschools",Sys.Date(),".csv",sep="")
+    },
+    content=function(file){
+      write.csv(bostonInputs(),file)
+    }
+  )
 }
 
 # Run the application 
