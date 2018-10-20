@@ -11,14 +11,13 @@ library(plotly)
 library(shinythemes)
 
 
-#For the map I am going to use a geojson map 
+#Kaggle Api
 kaggle.api <- "https://www.kaggle.com/api/v1/datasets/download/crawford/boston-public-schools/Public_Schools.csv"
 kaggle.auth <- function() {
   source("credentials2.R")
   httr::authenticate(username, key)
 }
 response <- httr::GET(kaggle.api, kaggle.auth())
-#data<-writeOGR(Bostonschools,driver="GEOJSON")
 Bostonschools<- read_csv(response$content) 
 bostonschoolsmap<-readOGR("Public_Schools.geojson")
 schooldistrict<-readOGR("Boston_Neighborhoods.shp")
@@ -84,14 +83,14 @@ ui <- navbarPage("Public Schools in Boston",
 # Define server logic 
 server <- function(input, output) {
   
-
+#Defining a reactive function for the map
   bostonmapsInputs <- reactive({
     if (length(input$nameselect) > 0) {
       bostonschoolsmap <- subset(bostonschoolsmap, SCH_NAME %in% input$nameselect)
     }
     return(bostonschoolsmap)
   })
-  
+  #Defining a reactive function for the plots and table
   bostonInputs <- reactive({
     if (length(input$cityselect) > 0) {
         Bostonschools <- subset(Bostonschools, CITY %in% input$cityselect)
@@ -105,7 +104,7 @@ server <- function(input, output) {
     
     return(Bostonschools)
   })
-  
+  #Leaflet output
   output$leaflet <- renderLeaflet({
     bostonschoolsmap <- bostonmapsInputs()
     # Build Map
@@ -133,7 +132,7 @@ server <- function(input, output) {
       labs(title= "Number of schools per Principal´s name",
            x= "Number of schools", y= "Principal's name")
   })
-  
+  #Table and download button
   output$table <- DT::renderDataTable({
     subset(bostonInputs(), select = c("SCH_TYPE","SCH_NAME","ZIPCODE","ADDRESS","CITY"))
   })
