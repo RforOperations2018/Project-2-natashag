@@ -81,7 +81,7 @@ ui <- navbarPage("Public Schools in Boston",
                  )
 )
 
-# Define server logic required to draw a histogram
+# Define server logic 
 server <- function(input, output) {
   
 
