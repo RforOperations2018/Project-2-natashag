@@ -25,7 +25,7 @@ schooldistrict<-readOGR("Boston_Neighborhoods.shp")
 
 # Define UI for application
 ui <- navbarPage("Public Schools in Boston",
-                 theme = shinytheme("darkly"),
+                 theme = shinytheme("cosmo"),
                  tabPanel("Map",
                           sidebarLayout(
                             sidebarPanel(
@@ -125,13 +125,13 @@ server <- function(input, output) {
       labs(title= "Number of schools per type",
            x= "Number of schools", y= "school type")
   })
-  # The second plot is going to show the number of schools 
+  # The second plot is going to show the number of schools per principle's name
   output$Plot2 <- renderPlotly({
     Bostonschools<- bostonInputs()
     ggplot(data =  Bostonschools, aes(x =PL)) + 
       geom_histogram(stat="count") + 
-      labs(title= "Number of schools per City",
-           x= "Number of schools", y= "City")
+      labs(title= "Number of schools per Pinciple´s name",
+           x= "Number of schools", y= "Princile's name")
   })
   
   output$table <- DT::renderDataTable({
@@ -142,7 +142,7 @@ server <- function(input, output) {
       paste("Bostonschools",Sys.Date(),".csv",sep="")
     },
     content=function(file){
-      write.csv(bostonInputs(),file)
+    write.csv(bostonInputs(),file)
     }
   )
 }
