@@ -66,7 +66,7 @@ ui <- navbarPage("Public Schools in Boston",
                             ),
                           fluidRow(
                             column(5, plotlyOutput("Plot1")),
-                            column(7, plotlyOutput("Plot2"))
+                            column(8, plotlyOutput("Plot2"))
                           )
                       )    
                  ),
@@ -130,8 +130,8 @@ server <- function(input, output) {
     Bostonschools<- bostonInputs()
     ggplot(data =  Bostonschools, aes(x =PL)) + 
       geom_histogram(stat="count") + 
-      labs(title= "Number of schools per Pinciple´s name",
-           x= "Number of schools", y= "Princile's name")
+      labs(title= "Number of schools per Principal´s name",
+           x= "Number of schools", y= "Principal's name")
   })
   
   output$table <- DT::renderDataTable({
