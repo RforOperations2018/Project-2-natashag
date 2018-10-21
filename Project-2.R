@@ -12,6 +12,7 @@ library(shinythemes)
 
 
 #Kaggle Api
+# So this isn't using an API, and none of it was done on the reactive side of the application. I let you go in that one homework, but you really should have checked with me before you used this again. This completely misses the point of the prompt, and with two weeks to do the assignment you really should have figured it would be more difficult.
 kaggle.api <- "https://www.kaggle.com/api/v1/datasets/download/crawford/boston-public-schools/Public_Schools.csv"
 kaggle.auth <- function() {
   source("credentials2.R")
